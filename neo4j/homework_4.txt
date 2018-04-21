@@ -1,7 +1,137 @@
-// The scenario you have used for your schema is:
-
+// Game of Thrones
 
 // This is an example. Your own commands should *not* be commented out so we can pipe the file into the cypher-shell.
 // If you'd like to test your commands, you can run 'cat homework_4.txt | cypher-shell -u neo4j -p test' from
 // the vagrant box command line. Make sure neo4j is running first.
 // CREATE (a:person { name: 't' });
+
+// Create nodes
+CREATE (:Person {name: "Tyrion Lannister",	alive: TRUE});
+CREATE (:Person {name: "Jaime Lanniser",	alive: TRUE});
+CREATE (:Person {name: "Cersei Lannister",	alive: TRUE});
+CREATE (:Person {name: "Tywin Lannister",	alive: FALSE});
+CREATE (:Person {name: "Lancel Lannister",	alive: FALSE});
+CREATE (:Person {name: "Kevan Lannister",	alive: FALSE});
+CREATE (:Person {name: "Jon Snow",		alive: TRUE});
+CREATE (:Person {name: "Daenerys Targaryen",	alive: TRUE});
+CREATE (:Person {name: "Daario Naharis",	alive: TRUE});
+CREATE (:Person {name: "Shae",			alive: FALSE});
+
+// Tyrion Lannister
+MATCH (person:Person), (parent:Person), (sibling:Person), (friend:Person), (lover:Person)
+	WHERE person.name = "Tyrion Lannister" AND
+		parent.name	= "Tywin Lannister" AND (
+		sibling.name	= "Jamie Lannister" OR
+		sibling.name	= "Cersei Lannister"
+		) AND (
+		friend.name	= "Jon Snow" OR
+		friend.name	= "Daenerys Targaryen" OR
+		friend.name	= "Daario Naharis"
+		) AND
+		lover.name	= "Shae"
+MERGE (person)-[:CHILD_OF]->(parent)
+MERGE (person)-[:SIBLING_OF]->(sibling)
+MERGE (person)-[:FRIEND_OF]->(friend)
+MERGE (person)-[:LOVER_OF {current: FALSE}]->(lover);
+
+// Daenerys Targaryen
+MATCH (person:Person), (friend:Person), (lover1:Person), (lover2:Person)
+	WHERE person.name = "Daenerys Targaryen" AND
+		friend.name	= "Tyrion Lannister" AND
+		lover1.name	= "Daario Naharis" AND
+		lover2.name	= "Jon Snow"
+MERGE (person)-[:FRIEND_OF]->(friend)
+MERGE (person)-[:LOVER_OF {current: FALSE}]->(lover1)
+MERGE (person)-[:LOVER_OF {current: TRUE}]->(lover2);
+
+// Daario Naharis
+MATCH (person:Person), (friend:Person), (lover:Person)
+	WHERE person.name = "Daario Naharis" AND
+		friend.name	= "Tyrion Lannister" AND
+		lover.name	= "Daenerys Targaryen"
+MERGE (person)-[:FRIEND_OF]->(friend)
+MERGE (person)-[:LOVER_OF {current: FALSE}]->(lover);
+
+// Shae
+MATCH (person:Person), (lover:Person)
+	WHERE person.name = "Shae" AND (
+		lover.name	= "Tyrion Lannister" OR
+		lover.name	= "Tywin Lannister"
+		)
+MERGE (person)-[:LOVER_OF {current: FALSE}]->(lover);
+
+// Tywin Lannister
+MATCH (person:Person), (child:Person), (sibling:Person), (lover:Person)
+	WHERE person.name = "Tywin Lannister" AND (
+		child.name	= "Jaime Lannister" OR
+		child.name	= "Cersei Lannister" OR
+		child.name	= "Tyrion Lannister"
+		) AND
+		sibling.name	= "Kevan Lannister" AND
+		lover.name	= "Shae"
+MERGE (person)-[:PARENT_OF]->(child)
+MERGE (person)-[:SIBLING_OF]->(sibling)
+MERGE (person)-[:LOVER_OF {current: FALSE}]->(lover);
+
+// Kevan Lannister
+MATCH (person:Person), (child:Person), (sibling:Person)
+	WHERE person.name = "Kevan Lannister" AND
+		child.name	= "Lancel Lannister" AND
+		sibling.name	= "Tywin Lannister"
+MERGE (person)-[:PARENT_OF]->(child)
+MERGE (person)-[:SIBLING_OF]->(sibling);
+
+// Lancel Lannister
+MATCH (person:Person), (parent:Person), (lover:Person)
+	WHERE person.name = "Lancel Lannister" AND
+		parent.name	= "Kevan Lannister" AND
+		lover.name	= "Cersei Lannister"
+MERGE (person)-[:CHILD_OF]->(parent)
+MERGE (person)-[:LOVER_OF {current: FALSE}]->(lover);
+
+// Jaime Lannister
+MATCH (person:Person), (parent:Person), (sibling:Person), (lover:Person)
+	WHERE person.name = "Jaime Lannister" AND
+		parent.name	= "Tywin Lannister" AND (
+		sibling.name	= "Cersei Lannister" OR
+		sibling.name	= "Tyrion Lannister"
+		) AND
+		lover.name	= "Cersei Lannister"
+MERGE (person)-[:CHILD_OF]->(parent)
+MERGE (person)-[:SIBLING_OF]->(sibling)
+MERGE (person)-[:LOVER_OF {current: TRUE}]->(lover);
+
+// Jon Snow
+MATCH (person:Person), (friend:Person), (lover:Person)
+	WHERE person.name = "Jon Snow" AND
+		friend.name	= "Tyrion Lannister" AND
+		lover.name	= "Daenerys Targaryen"
+MERGE (person)-[:FRIEND_OF]->(friend)
+MERGE (person)-[:LOVER_OF {current: TRUE}]->(lover);
+
+// Cersei Lannister
+MATCH (person:Person), (parent:Person), (sibling:Person), (lover1:Person), (lover2:Person)
+	WHERE person.name = "Cersei Lannister" AND
+		parent.name	= "Tywin Lannister" AND (
+		sibling.name	= "Jaime Lannister" OR
+		sibling.name	= "Tyrion Lannister"
+		) AND
+		lover1.name	= "Jaime Lannister" AND
+		lover2.name	= "Lancel Lannister"
+MERGE (person)-[:CHILD_OF]->(parent)
+MERGE (person)-[:SIBLING_OF]->(sibling)
+MERGE (person)-[:LOVER_OF {current: TRUE}]->(lover1)
+MERGE (person)-[:LOVER_OF {current: FALSE}]->(lover2);
+
+// Test queries
+MATCH (person:Person), (sibling:Person), (child:Person)
+	WHERE person.name = "Tywin Lannister" AND
+	(person)-[:SIBLING_OF]->(sibling) AND
+	(person)-[:PARENT_OF]->(child)
+RETURN person,  sibling, child;
+
+MATCH (person)-[lover_of:LOVER_OF]->(other)
+RETURN person, lover_of, other;
+
+MATCH (person)-[friend_of:FRIEND_OF]->(other)
+RETURN person, friend_of, other;
