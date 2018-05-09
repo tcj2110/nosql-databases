@@ -154,6 +154,7 @@ def insert_comment(article, user, comment):
 		{'$push': {"comments" : {article : comment}}}
 		)
 
+# Prints the top k articles
 def top(k):
 	cursor = db["articles"].find({}, {"name":1, '_id':0, "votes":1}).sort(
 					"votes",pymongo.DESCENDING).limit(k)
@@ -164,49 +165,98 @@ def top(k):
 	for document in cursor:
 		pprint(document)
 
+# Prints the top k articles within a date range
 def top_by_date(start, end, k):
 	cursor = db["articles"].find({"date":{'$lt':end,'$gte':start}},
 				{"name":1,'_id':0,"votes":1,"date":1}).sort(
 					"votes",pymongo.DESCENDING).limit(k)
 
 	print(	"********************************\n" \
-		"Top %s Articles:\n" \
+		"Top %s Articles In Date Range:\n" \
 		"********************************" % k)
 	for document in cursor:
 		pprint(document)
 
 if __name__ == '__main__':
+	db["articles"].drop()
+	db["users"].drop()
+
 	print_users()	# print to show no users and articles
 	print_articles()
 
+	# create 5 users
 	new_user("Nasty Nate")
 	new_user("David")
 	new_user("Billy")
 	new_user("Emily Stolfo")
 	new_user("Cassandra")
 
+	# create 16 articles (bogus links by the way)
 	new_article("I have big biceps",
-			"http://www.nytimes.com",
+			"http://www.nytimes.com/745",
 			"Emily Stolfo")
 	new_article("Aliens have landed",
-			"http://www.wapo.com",
+			"http://www.wapo.com/516",
 			"David")
 	new_article("Trump Elected For Fourth Term",
-			"http://www.theonion.com",
+			"http://www.theonion.com/53",
 			"Billy")
 	new_article("Calories in, calories out",
-			"http://www.mensfitness.com",
+			"http://www.mensfitness.com/5",
 			"Nasty Nate")
+	new_article("Trump Lawyers Anxious 4,731st Shoe Will Drop",
+			"http://www.latimes.com/556",
+			"Emily Stolfo")
+	new_article("Iranian Scientist Annoyed He'll Have To Go"\
+			"Back To Work On Nuclear Weapons",
+			"http://www.wapo.com/21",
+			"David")
+	new_article("Are Jupiter And Venus Messing With Earth's Climate?",
+			"http://www.gizmodo.com/643",
+			"Billy")
+	new_article("Excited Mike Pence Assures John McCain He Has His "\
+			"Last Rites Kit Ready To Go Just In Case",
+			"http://www.sfnews.com/633",
+			"Nasty Nate")
+	new_article("Disease Spread By Ticks Tripled Since 2004",
+			"http://www.chicagotribune.com/64",
+			"Emily Stolfo")
+	new_article("Kanye West Says Slavery Was A Choice",
+			"http://www.usatoday.com/213",
+			"David")
+	new_article("Andrew Luck Fully Recovered From Surgery",
+			"http://www.theonion.com/542",
+			"Billy")
+	new_article("Democrats Lose Ground With Millenials",
+			"http://www.mensfitness.com/242",
+			"Nasty Nate")
+	new_article("Stephen Hawking's Final Paper Published",
+			"http://www.nytimes.com/334",
+			"Emily Stolfo")
+	new_article("Gibson Files For Bankruptcy",
+			"http://www.wapo.com/32",
+			"David")
+	new_article("Driven To Greatness",
+			"http://www.theonion.com/21",
+			"Billy")
+	new_article("Facebook Announces Dating Service",
+			"http://www.aol.com/1",
+			"Nasty Nate")
+
 
 	print_users()	# print to show new users and articles
 	print_articles()
 
 	upvote("I have big biceps", "Nasty Nate")
 	upvote("Aliens have landed", "Emily Stolfo")
-	upvote("Trump Elected For Fourth Term", "Billy")
+	upvote("Gibson Files For Bankruptcy", "Billy")
 	upvote("Aliens have landed", "David")
 	upvote("Calories in, calories out", "David")
 	upvote("Trump Elected For Fourth Term", "Nasty Nate")
+	upvote("Trump Elected For Fourth Term", "Emily Stolfo")
+	upvote("Trump Elected For Fourth Term", "Billy")
+	upvote("Trump Elected For Fourth Term", "David")
+	upvote("Trump Elected For Fourth Term", "Cassandra")
 
 # Action 1: AS A person, I WANT to make an account
 	new_user("Squirrel Master")
